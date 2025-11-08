@@ -35,4 +35,19 @@ class PDFLoader:
 
         return pages_data 
     
+    def process_multiple_pdfs(self,pdf_paths:List[str])->List[Dict]:
+        """
+           process multiple pdfs and return combined page data
+        """
+        all_pages=[]
 
+        for pdf_path in pdf_paths:
+            try:
+                pages=self.extract_text_from_pdf(pdf_path)
+                all_pages.extend(pages)
+                
+            except Exception as e:
+                print(f"error prcessing {path_path}:{str(e)}")
+                continue 
+
+        return all_pages 
