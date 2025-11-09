@@ -138,4 +138,45 @@ class HybridRetriever:
 
             return final_results
         
+    def _normalize_scores(self,scores:List[float])->List[float]:
+        """
+            Normalize score to 0-1 range
+        """
+
+        if not scores:
+            return []
         
+        min_score=min(scores)
+        max_score=max(scores)
+
+
+        if max_score==min_score:
+
+            return [1.0]*len(scores)
+        
+        return [(score-min_score)/(max_score-min_score) for score in scores]
+           
+    def search_by_source(self,source_file:str,page_number:int=None)->List[Dict]:
+
+        """
+           search from chunks from a specific source file and optionally page
+        """
+
+        return self.chroma_store.get_chunk_by_metadata(source_file,page_number)
+    
+    def get_collection_stats(self)->Dict:
+        """
+          get statistics about the collections
+        """
+
+        return{
+            "chroma_count":self.chroma_store.get_collection_count(),
+            "bm25_count":len(self.bm25_index.chunk_metadata) if self.bm25_index.chunk_metadata else 0 
+        }
+    
+    def clear_indices(self):
+        """
+          clear both indices
+        """
+        self.chroma_store.reset_collection()
+        self.bm24_index=BM25Index() # reset bm25 index 
