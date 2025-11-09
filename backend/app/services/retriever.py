@@ -113,4 +113,29 @@ class HybridRetriever:
 
             if chunk_id in result_scores:
                 result_scores[chunk_id]["embedding_score"]=embedding_scores[i] if i<len(embedding_scores) else 0.0 
-            
+            else:
+                result_scores[chunk_id]={
+                    "result":result,
+                    "bm25_score":0.0,
+                    "embedding_score":embedding_scores[i] if i<len(embedding_scores) else 0.0 
+                }
+
+            #calculate combined score 
+            final_results=[]
+            for chunk_id,data in result_scores.items():
+                combined_score=(bm25_weight*data["bm25_score"]) + (embedding_weight*data["embedding_score"])
+
+                result=data["result"].copy() 
+                result["combined_score"]=combined_score
+                result["bm25_score"]=data["bm25_score"]
+                result["embedding_score"]=data["embedding_score"]
+
+                final_results.append(result)
+
+            #sort by combined scores 
+            final_results.sort(key=lambda x:x["combined_score"],reverse=True)
+
+
+            return final_results
+        
+        
