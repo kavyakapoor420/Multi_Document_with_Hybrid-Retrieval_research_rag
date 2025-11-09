@@ -81,4 +81,36 @@ class HybridRetriever:
         # return top results 
         return combined_results[:top_k]
     
-    
+
+    def _combine_results(self,
+                         bm25_results:List[Tuple[Dict,float]],embedding_results:List[Tuple[Dict,float]],
+                         bm25_weight:float,embedding_weight:float)->List[Dict] :
+        
+        """
+          Combine and rank results from bm25 and embedding search 
+        """
+
+        #first normalize the scores 
+        bm25_scores=self._normalize_scores([score for _,score in bm25_results])
+        embedding_scores=self._normalize_scores([score for _, score in embedding_results])
+
+        # create a dictionary to store combined socres 
+        result_scores={}
+
+        # add bm25 results 
+
+        for i,(result,_) in enumerate(bm25_results):
+            chunk_id=result["metadata"]["chunk_id"]
+            result_scores[chunk_id]={
+                "result":result,
+                "bm25_score":bm25_scores[i] if i<len(bm25_scores) else 0.0 ,
+                "embedding_score":0.0
+            }
+
+        # add embedding results 
+        for i,(result,_) in enumerate(embedding_results):
+            chunk_id=result["metadata"]["chunk_id"]
+
+            if chunk_id in result_scores:
+                result_scores[chunk_id]["embedding_score"]=embedding_scores[i] if i<len(embedding_scores) else 0.0 
+            
